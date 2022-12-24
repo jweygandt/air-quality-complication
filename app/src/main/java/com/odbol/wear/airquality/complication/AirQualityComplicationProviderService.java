@@ -23,6 +23,7 @@ import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.complications.ComplicationManager;
 import android.support.wearable.complications.ComplicationProviderService;
 import android.support.wearable.complications.ComplicationText;
+import android.support.wearable.complications.ComplicationTextUtils;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -131,19 +132,50 @@ public class AirQualityComplicationProviderService extends ComplicationProviderS
                                 .setTapAction(getTapAction())
                                 .build();
                 break;
-            case ComplicationData.TYPE_RANGED_VALUE:
+            case ComplicationData.TYPE_RANGED_VALUE: {
+                float mx, mn;
+                int color;
+                float value = getAqiValue(sensor);
+                if(value <=50){
+                    mn=0;
+                    mx=50;
+                    color=0;
+                } else if (value <=100){
+                    mn=50;
+                    mx=100;
+                    color=1;
+                } else if (value <=150){
+                    mn=100;
+                    mx=150;
+                    color=2;
+                } else if (value <=200){
+                    mn=150;
+                    mx=200;
+                    color=3;
+                } else if (value <=300){
+                    mn=200;
+                    mx=300;
+                    color=4;
+                } else {
+                    mn=300;
+                    mx=400;
+                    color=5;
+                }
                 complicationData =
                         new ComplicationData.Builder(ComplicationData.TYPE_RANGED_VALUE)
-                                .setShortTitle(getTimeAgo(sensor))
+//                                .setShortTitle(getTimeAgo(sensor))
                                 .setShortText(getAqi(sensor))
-                                .setMinValue(0)
-                                .setMaxValue(500)
-                                .setValue(Math.min(500, getAqiValue(sensor)))
-                                .setContentDescription(getFullDescription(sensor))
+                                .setImageContentDescription(ComplicationText.plainText(
+                                        ((int)value) + " ppm" + "#Color:"+color))
+                                .setMinValue(mn)
+                                .setMaxValue(mx)
+                                .setValue(value)
+//                                .setContentDescription(getFullDescription(sensor))
                                 .setIcon(Icon.createWithResource(this, R.drawable.ic_air_quality))
                                 .setTapAction(getTapAction())
                                 .build();
                 break;
+            }
             default:
                 if (Log.isLoggable(TAG, Log.WARN)) {
                     Log.w(TAG, "Unexpected complication type " + dataType);
